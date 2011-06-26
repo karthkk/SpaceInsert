@@ -16,8 +16,6 @@ def breakwrds(word,scores,force=False):
 				best_candidate_word = w
 		found_candidates[i]=best_candidate_word
 		level_max_scores[i]=best_score			
-	print level_max_scores
-	print found_candidates
 	words = []
 	s = len(word)
 	while s>0:
@@ -76,6 +74,9 @@ def loadprobs():
 	return dict(m)
 
 if __name__ == '__main__':
+	if len(sys.argv) < 3:
+		print "Usage fix.py source_file dest_file"
+		sys.exit(0)
 	proper_words = {}
 	dicwords = open('allwords').readlines()
 	dicwords = dict(map(lambda x:(x.strip(),0),dicwords))
@@ -85,12 +86,9 @@ if __name__ == '__main__':
 	proper_words.update(wcf)
 	proper_words.update(loadprobs())
 
-	print 'st ' +  str(proper_words.get('st'))
-	print 'coast ' + str( proper_words.get('coast'))
-	#print proper_words
 	proper_words['a'] = 100
 	proper_words['i'] = 100
-	s = open('/tmp/nf','w')
+	s = open(sys.argv[2],'w')
 	for line in file(sys.argv[1]):
 		words = getwords(line.strip())
 		allw = []
@@ -101,6 +99,5 @@ if __name__ == '__main__':
 			else:
 				allw.append( w )
 		s.write( ' '.join(allw) )
-#		print ' '.join(allw)
 		s.write("\n")
 	s.close()
