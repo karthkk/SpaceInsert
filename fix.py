@@ -7,10 +7,10 @@ def breakwrds(word,scores,force=False):
 	level_max_scores = {}
 	for i in range(1,len(word)+1):
 		best_candidate_word = ''
-		best_score = -1
+		best_score = -10000
 		for j in range(0,i):
 			w = word[j:i]
-			score = level_max_scores.get(j,0)+scores.get(w.lower(),-100)
+			score = min(level_max_scores.get(j,100),scores.get(w.lower(),-10*len(w)))
 			if score>best_score:
 				best_score = score
 				best_candidate_word = w
@@ -57,8 +57,7 @@ def get_word_prob(files):
 		words = filter(lambda x: x.strip()!='',words)
 		for w in words:
 			cnts[w] = cnts.get(w,0)+1
-	scored_words = map(lambda x:(x[0],x[1]+len(x[0])),cnts.items())
-	proper_words = dict(filter(lambda x:  len(x[0])>1 ,scored_words))
+	proper_words = dict(filter(lambda x:  len(x[0])>1 and x[0].find(':')<0,cnts.items()))
 	return proper_words
 	
 
@@ -67,28 +66,30 @@ if __name__ == '__main__r':
 	wp = word_probs.items()
 	wp.sort(lambda x,y:cmp(y[1],x[1]))
 	f = open('probs','w')
-	f.write('\n'.join(map(lambda x: x[0].replace(':','')+':'+str(x[1]*len(x[0])),wp)))
+	f.write('\n'.join(map(lambda x: x[0].replace(':','')+':'+str(x[1]),wp)))
 	f.close()
 
 def loadprobs():
 	s = open('probs').readlines()
 	l = map(lambda x: x.strip().split(':'),s)
-	m = map(lambda x: (x[0],math.log(int(x[1]))*math.pow(len(x[0]),1.2)),l)
+	m = map(lambda x: (x[0],int(x[1])),l)
 	return dict(m)
 
 if __name__ == '__main__':
 	proper_words = {}
 	dicwords = open('allwords').readlines()
-	dicwords = dict(map(lambda x:(x.strip(),len(x)),dicwords))
+	dicwords = dict(map(lambda x:(x.strip(),0),dicwords))
 	proper_words.update(dicwords)
-	proper_words.update(get_word_prob([sys.argv[1]]))
+	wrdsincurrentfile = get_word_prob([sys.argv[1]])
+	wcf = dict(filter(lambda x: len(x[0])<20 and x[1]>2, wrdsincurrentfile.items()))
+	proper_words.update(wcf)
 	proper_words.update(loadprobs())
 
 	print 'st ' +  str(proper_words.get('st'))
 	print 'coast ' + str( proper_words.get('coast'))
 	#print proper_words
-	proper_words['a'] = 1
-	proper_words['i'] = 1
+	proper_words['a'] = 100
+	proper_words['i'] = 100
 	s = open('/tmp/nf','w')
 	for line in file(sys.argv[1]):
 		words = getwords(line.strip())
